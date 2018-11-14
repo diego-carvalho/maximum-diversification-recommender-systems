@@ -1,0 +1,12 @@
+https://people.sc.fsu.edu/~jburkardt/datasets/knapsack_01/knapsack_01.html
+
+Para executar:
+
+Instancia 1: ./main 10 ./instancias/p01_c.txt ./instancias/p01_w.txt ./instancias/p01_p.txt
+Instancia 2: ./main 5 ./instancias/p02_c.txt ./instancias/p02_w.txt ./instancias/p02_p.txt
+Instancia 3: ./main 6 ./instancias/p03_c.txt ./instancias/p03_w.txt ./instancias/p03_p.txt
+Instancia 4: ./main 7 ./instancias/p04_c.txt ./instancias/p04_w.txt ./instancias/p04_p.txt
+Instancia 5: ./main 8 ./instancias/p05_c.txt ./instancias/p05_w.txt ./instancias/p05_p.txt
+Instancia 6: ./main 7 ./instancias/p06_c.txt ./instancias/p06_w.txt ./instancias/p06_p.txt
+Instancia 7: ./main 15 ./instancias/p07_c.txt ./instancias/p07_w.txt ./instancias/p07_p.txt
+Instancia 8: ./main 24 ./instancias/p08_c.txt ./instancias/p08_w.txt ./instancias/p08_p.txt

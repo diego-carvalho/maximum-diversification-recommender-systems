@@ -1,0 +1,44 @@
+
+rec_userKNN
+Novelty average: 0.031654    Novelty median: 0.022350
+Diversity average: 0.354555    Diversity median: 0.350745
+--------------------------
+
+
+rec_userKNN_5
+Novelty average: 0.047570    Novelty median: 0.012732
+Diversity average: 0.273633    Diversity median: 0.273227
+--------------------------
+
+
+rec_userKNN_10
+Novelty average: 0.043269    Novelty median: 0.027337
+Diversity average: 0.289564    Diversity median: 0.287657
+--------------------------
+
+
+rec_userKNN_20
+Novelty average: 0.039592    Novelty median: 0.027510
+Diversity average: 0.307854    Diversity median: 0.304817
+--------------------------
+
+
+rec_userKNN
+Accuracy Average: 0.119469
+Accuracy Median: 0.090000
+-------------------------------
+
+rec_userKNN_5
+Accuracy Average: 0.187483
+Accuracy Median: 0.000000
+-------------------------------
+
+rec_userKNN_10
+Accuracy Average: 0.173411
+Accuracy Median: 0.100000
+-------------------------------
+
+rec_userKNN_20
+Accuracy Average: 0.159354
+Accuracy Median: 0.100000
+-------------------------------

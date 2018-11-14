@@ -1,0 +1,44 @@
+
+rec_MostPopular
+Novelty average: 0.028231    Novelty median: 0.017891
+Diversity average: 0.322064    Diversity median: 0.319086
+--------------------------
+
+
+rec_MostPopular_5
+Novelty average: 0.045437    Novelty median: 0.011830
+Diversity average: 0.225642    Diversity median: 0.219966
+--------------------------
+
+
+rec_MostPopular_10
+Novelty average: 0.041980    Novelty median: 0.018688
+Diversity average: 0.239804    Diversity median: 0.233087
+--------------------------
+
+
+rec_MostPopular_20
+Novelty average: 0.037629    Novelty median: 0.023274
+Diversity average: 0.264399    Diversity median: 0.258088
+--------------------------
+
+
+rec_MostPopular
+Accuracy Average: 0.092748
+Accuracy Median: 0.060000
+-------------------------------
+
+rec_MostPopular_5
+Accuracy Average: 0.161755
+Accuracy Median: 0.000000
+-------------------------------
+
+rec_MostPopular_10
+Accuracy Average: 0.147550
+Accuracy Median: 0.100000
+-------------------------------
+
+rec_MostPopular_20
+Accuracy Average: 0.135530
+Accuracy Median: 0.100000
+-------------------------------

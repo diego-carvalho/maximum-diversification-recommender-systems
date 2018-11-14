@@ -1,51 +1,51 @@
-14:40:40   22/10/18
+14:49:50   12/11/18
 
 ----------------------------------
 Dataset  ML-1M
 ----------------------------------
 UserKNN
-loading_time 1.01
+loading_time 0.9
 memory 16
 training data: 6040 users, 3649 items, 699865 events, sparsity 96.82456
 test data:     6040 users, 3578 items, 300344 events, sparsity 98.61023
 UserKNN k=80 correlation=Cosine q=1 weighted=False alpha=0,5 (only for BidirectionalConditionalProbability) 
-training_time 00:03:55.3158720 Wrote predictions to file Recommendations Lists/rec_userKNN.txt. prediction_time 00:07:03.1106910
+training_time 00:03:57.9118540 Wrote predictions to file Recommendations-Lists/rec_userKNN.txt. prediction_time 00:06:51.2647350
 
 memory 246
 
 ----------------------------------------------------------------------------------
 
 ItemKNN
-loading_time 1
+loading_time 0.91
 memory 16
 training data: 6040 users, 3649 items, 699865 events, sparsity 96.82456
 test data:     6040 users, 3578 items, 300344 events, sparsity 98.61023
 ItemKNN k=80 correlation=Cosine q=1 weighted=False alpha=0,5 (only for BidirectionalConditionalProbability) 
-training_time 00:01:17.9012810 Wrote predictions to file Recommendations Lists/rec_itemKNN.txt. prediction_time 00:10:23.0152950
+training_time 00:01:15.8340450 Wrote predictions to file Recommendations-Lists/rec_itemKNN.txt. prediction_time 00:10:05.6304270
 
 memory 126
 
 ----------------------------------------------------------------------------------
 
 WRMF
-loading_time 0.97
+loading_time 1.01
 memory 16
 training data: 6040 users, 3649 items, 699865 events, sparsity 96.82456
 test data:     6040 users, 3578 items, 300344 events, sparsity 98.61023
 WRMF num_factors=10 regularization=0.015 alpha=1 num_iter=15 
-training_time 00:00:09.4609830 Wrote predictions to file Recommendations Lists/rec_WRMF.txt. prediction_time 00:00:02.8647870
+training_time 00:00:09.6752370 Wrote predictions to file Recommendations-Lists/rec_WRMF.txt. prediction_time 00:00:02.9737720
 
 memory 52
 
 ----------------------------------------------------------------------------------
 
 MostPopular
-loading_time 0.93
+loading_time 1
 memory 16
 training data: 6040 users, 3649 items, 699865 events, sparsity 96.82456
 test data:     6040 users, 3578 items, 300344 events, sparsity 98.61023
 MostPopular by_user=False 
-training_time 00:00:00.0101620 Wrote predictions to file Recommendations Lists/rec_MostPopular.txt. prediction_time 00:00:02.1573230
+training_time 00:00:00.0103030 Wrote predictions to file Recommendations-Lists/rec_MostPopular.txt. prediction_time 00:00:02.1428470
 
 memory 35
 

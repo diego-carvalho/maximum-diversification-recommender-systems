@@ -1,0 +1,44 @@
+
+rec_WRMF
+Novelty average: 0.031378    Novelty median: 0.022139
+Diversity average: 0.354501    Diversity median: 0.353287
+--------------------------
+
+
+rec_WRMF_5
+Novelty average: 0.047437    Novelty median: 0.012434
+Diversity average: 0.272105    Diversity median: 0.272032
+--------------------------
+
+
+rec_WRMF_10
+Novelty average: 0.043378    Novelty median: 0.027811
+Diversity average: 0.287638    Diversity median: 0.287963
+--------------------------
+
+
+rec_WRMF_20
+Novelty average: 0.039145    Novelty median: 0.027201
+Diversity average: 0.305254    Diversity median: 0.305643
+--------------------------
+
+
+rec_WRMF
+Accuracy Average: 0.114675
+Accuracy Median: 0.090000
+-------------------------------
+
+rec_WRMF_5
+Accuracy Average: 0.178582
+Accuracy Median: 0.000000
+-------------------------------
+
+rec_WRMF_10
+Accuracy Average: 0.166738
+Accuracy Median: 0.100000
+-------------------------------
+
+rec_WRMF_20
+Accuracy Average: 0.152724
+Accuracy Median: 0.100000
+-------------------------------

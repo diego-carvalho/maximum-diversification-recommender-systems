@@ -17,7 +17,7 @@ do
 
 	echo "UserKNN" >> log.txt
 	echo "UserKNN"
-	item_recommendation --training-file=Datasets/ML-1M/trainSet.csv	 --test-file=Datasets/ML-1M/testSet.csv --recommender=UserKNN --prediction-file=Recommendations\ Lists/rec_userKNN.txt --predict-items-number=100 2>> log.txt >> log.txt
+	item_recommendation --training-file=Datasets/ML-1M/trainSet.csv	 --test-file=Datasets/ML-1M/testSet.csv --recommender=UserKNN --prediction-file=Recommendations-Lists/rec_userKNN.txt --predict-items-number=100 2>> log.txt >> log.txt
 
 	echo "" >> log.txt
 	echo "----------------------------------------------------------------------------------" >> log.txt
@@ -25,7 +25,7 @@ do
 
 	echo "ItemKNN" >> log.txt
 	echo "ItemKNN"
-	item_recommendation --training-file=Datasets/ML-1M/trainSet.csv	 --test-file=Datasets/ML-1M/testSet.csv --recommender=ItemKNN --prediction-file=Recommendations\ Lists/rec_itemKNN.txt --predict-items-number=100 2>> log.txt >> log.txt
+	item_recommendation --training-file=Datasets/ML-1M/trainSet.csv	 --test-file=Datasets/ML-1M/testSet.csv --recommender=ItemKNN --prediction-file=Recommendations-Lists/rec_itemKNN.txt --predict-items-number=100 2>> log.txt >> log.txt
 
 	echo "" >> log.txt
 	echo "----------------------------------------------------------------------------------" >> log.txt
@@ -33,7 +33,7 @@ do
 
 	echo "WRMF" >> log.txt
 	echo "WRMF"
-	item_recommendation --training-file=Datasets/ML-1M/trainSet.csv	 --test-file=Datasets/ML-1M/testSet.csv --recommender=WRMF --prediction-file=Recommendations\ Lists/rec_WRMF.txt --predict-items-number=100 2>>log.txt >> log.txt
+	item_recommendation --training-file=Datasets/ML-1M/trainSet.csv	 --test-file=Datasets/ML-1M/testSet.csv --recommender=WRMF --prediction-file=Recommendations-Lists/rec_WRMF.txt --predict-items-number=100 2>>log.txt >> log.txt
 
 	echo "" >> log.txt
 	echo "----------------------------------------------------------------------------------" >> log.txt
@@ -41,7 +41,7 @@ do
 
 	echo "MostPopular" >> log.txt
 	echo "MostPopular"
-	item_recommendation --training-file=Datasets/ML-1M/trainSet.csv	 --test-file=Datasets/ML-1M/testSet.csv --recommender=MostPopular --prediction-file=Recommendations\ Lists/rec_MostPopular.txt --predict-items-number=100 2>>log.txt >> log.txt
+	item_recommendation --training-file=Datasets/ML-1M/trainSet.csv	 --test-file=Datasets/ML-1M/testSet.csv --recommender=MostPopular --prediction-file=Recommendations-Lists/rec_MostPopular.txt --predict-items-number=100 2>>log.txt >> log.txt
 
 
 	echo "" >> log.txt
