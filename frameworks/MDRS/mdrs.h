@@ -12,14 +12,17 @@
 #include <map>
 #include <algorithm>
 #include <math.h>
-#include <unordered_map> 
+#include <unordered_map>
 //#include <pthread.h>
 //#include <getopt.h>
 
 using namespace std;
 
-typedef std::unordered_map<int, float> Hash;
-typedef std::unordered_map<int, Hash> HashOfHashes;
+typedef std::unordered_map<int, float> Hash;		// INT: ID do item	  - FLOAT: valor do item
+typedef std::unordered_map<int, Hash> HashOfHashes; // INT: ID do usuário - HASH: lista do usuário
+
+typedef vector<int> Particle;   // Particula que contem: (First: ID do Item, Second: Valor)
+typedef vector<Particle> Swarm; // Enxame de particulas
 
 /* estrutura que define os parametros para funcao da thread */
 /*struct pthread_param {
@@ -34,7 +37,14 @@ typedef std::unordered_map<int, Hash> HashOfHashes;
 	char *outFile;
 };*/
 
+int swarmSize = 10;
+int particleSize = 10;
+
 int main(int argc, char **argv);
+
+void PSO_Discreet(int userId, Hash userPred);
+
+Swarm create_particles(Hash userPred, int swarmSize, int particleSize);
 
 void loadPred(string predFile, HashOfHashes &hashPred, int numPreds);
 
@@ -69,4 +79,3 @@ int getArgs(int argc, char **argv, char **baseFile, char **predFile, char **test
 void printUsage();*/
 
 #endif
-
