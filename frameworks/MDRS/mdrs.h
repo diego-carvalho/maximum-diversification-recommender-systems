@@ -18,10 +18,38 @@
 
 using namespace std;
 
+// diversify
 typedef std::unordered_map<int, float> Hash;		// INT: ID do item	  - FLOAT: valor do item
 typedef std::unordered_map<int, Hash> HashOfHashes; // INT: ID do usuário - HASH: lista do usuário
 
-typedef vector<int> Particle;   // Particula que contem: (First: ID do Item, Second: Valor)
+//pso 
+typedef std::unordered_map<int, vector<int>> VectorOfUser; // INT: ID do usuário - Vector: lista com os id de itens
+
+//typedef vector<int> Particle;   // Particula que contem: (First: ID do Item, Second: Valor)
+struct Element{
+	int id;
+	int pos;
+
+	Element(int id, int pos){
+		this->id = id;
+		this->pos = pos;
+	}
+};
+struct Particle {
+	vector<Element> element;
+	vector<Element> pBest;
+	float pBest_fo;
+	float relBest;
+	float divBest;
+	Particle():pBest_fo(0), relBest(0), divBest(0){}
+};
+struct GBest {
+	vector<Element> element;
+	float fo;
+	float rel;
+	float div;
+	GBest():fo(0), rel(0), div(0){}
+};
 typedef vector<Particle> Swarm; // Enxame de particulas
 
 /* estrutura que define os parametros para funcao da thread */
@@ -37,42 +65,49 @@ typedef vector<Particle> Swarm; // Enxame de particulas
 	char *outFile;
 };*/
 
-int swarmSize = 10;
-int particleSize = 10;
-
 int main(int argc, char **argv);
 
-void PSO_Discreet(int userId, Hash userPred);
+void PSO_Discreet(int userId, VectorOfUser &userPred, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize);
 
-Swarm create_particles(Hash userPred, int swarmSize, int particleSize);
+void calculate_fo(Particle& p, int userId, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize);
 
-void loadPred(string predFile, HashOfHashes &hashPred, int numPreds);
+int roulette(float w, float c1, float c2);
+
+Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize);
+
+bool findPosElement(int pos, vector<Element> elements);
+
+bool findIdElement(int id, vector<Element> elements);
+
+void loadPred(string predFile, HashOfHashes &hashPred, VectorOfUser &userPred, int numPreds);
+
+void loadTrainData(string trainFile, HashOfHashes &itemRatings, HashOfHashes &trainData);
+
+void loadTestData(string testFile, HashOfHashes &testData);
 
 void string_tokenize(const std::string &str, std::vector<std::string> &tokens, const std::string &delimiters);
 
-/*void *getMetrics(void *arg);
+float retrieveItemsSimilarity(int item1, int item2, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings);
 
-inline double probabilityOfRelevance(double rating);
+void diversityILD(int user, HashOfHashes &testData, vector<Element> &particle, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, double &ILD);
 
-double normalizedConstant(int listSize);
-
-inline double conditionalRankDiscount(int rank1, int rank2);
-
-double conditionalNormalization(int selectedRank, int user, HashOfHashes &testData, HashOfHashes &hashPred, double C);
+double getILD(HashOfHashes &testData, vector<Element> &particle, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int userId, int numPreds);
 
 float calculatePearsonSimilarity(int firstItem, int secondItem, HashOfHashes &itemRatings);
 
-float retrieveItemsSimilarity(int item1, int item2, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings);
-
-void diversityEILD(int user, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, double C, double &EILD, double &ILD);
+/*
 
 void noveltyDiscoveryEPC(int user, unsigned int numUsers, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &itemRatings, double C, double &EPC_r, double &EPC);
 
+inline double conditionalRankDiscount(int rank1, int rank2);
+
+double normalizedConstant(int listSize);
+
+double conditionalNormalization(int selectedRank, int user, HashOfHashes &testData, HashOfHashes &hashPred, double C);
+
+inline double probabilityOfRelevance(double rating);
+
 void noveltyEPD(int user, HashOfHashes &trainData, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, double C, double &EPD_r, double &EPD);
-
-void loadTrainData(char *trainFile, HashOfHashes &itemRatings, HashOfHashes &trainData);
-
-void loadTestData(char *testFile, HashOfHashes &testData);
 
 int getArgs(int argc, char **argv, char **baseFile, char **predFile, char **testFile, char **outFile, int *numThreads, int *numPreds);
 
