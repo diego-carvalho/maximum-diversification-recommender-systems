@@ -67,13 +67,15 @@ typedef vector<Particle> Swarm; // Enxame de particulas
 
 int main(int argc, char **argv);
 
-void PSO_Discreet(int userId, VectorOfUser &userPred, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize);
+void PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize);
 
-void calculate_fo(Particle& p, int userId, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize);
+void calculate_fo(Particle& p, int userId, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize);
 
 int roulette(float w, float c1, float c2);
 
-Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize);
+void embaralhar(vector<int> &vet, int vetSize);
+
+Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize, int numPreds);
 
 bool findPosElement(int pos, vector<Element> elements);
 
@@ -81,11 +83,15 @@ bool findIdElement(int id, vector<Element> elements);
 
 void loadPred(string predFile, HashOfHashes &hashPred, VectorOfUser &userPred, int numPreds);
 
+void loadFeature(string featureFile, VectorOfUser &hashFeature);
+
 void loadTrainData(string trainFile, HashOfHashes &itemRatings, HashOfHashes &trainData);
 
 void loadTestData(string testFile, HashOfHashes &testData);
 
 void string_tokenize(const std::string &str, std::vector<std::string> &tokens, const std::string &delimiters);
+
+float getDiv(vector<Element> &element, VectorOfUser &featureFile);
 
 float retrieveItemsSimilarity(int item1, int item2, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings);
 

@@ -7,14 +7,16 @@ int MAX_RATING;
 int main(int argc, char **argv)
 {
 	string predFileName = "../../Recommendations-Lists/rec_itemKNN_conv.txt";
+	//string predFileName = "../../Recommendations-Lists/rec_itemKNN_conv2.txt";
 	//string predFileName = "../../Recommendations-Lists/rec_MostPopular_conv.txt";
 	//string predFileName = "../../Recommendations-Lists/rec_WRMF_conv.txt";
 	string trainFileName = "../../Datasets/ML-1M/ratings_train.txt";
 	string testFileName = "../../Datasets/ML-1M/ratings_test.txt";
+	string featureFileName = "../../Datasets/ML-1M/featuresItems.txt";
 	int numPreds = 100;
-	int swarmSize = 20;
+	int swarmSize = 300;
 	int particleSize = 10;
-	float alfa = 0.7;
+	float alfa = 0.6;
 	int iter_max = 100;
 
 	std::ifstream file;
@@ -26,6 +28,7 @@ int main(int argc, char **argv)
 	HashOfHashes hashSimilarity;
 	HashOfHashes hashPred;
 	VectorOfUser userPred;
+	VectorOfUser hashFeature;
 
 	std::cout << "loading predictions...\n"  << flush;
 	loadPred(predFileName, hashPred, userPred, numPreds);
@@ -36,27 +39,30 @@ int main(int argc, char **argv)
 	std::cout << "loading training data...\n" << flush;
 	loadTrainData(trainFileName, itemRatings, trainData);
 
+	std::cout << "loading feature data...\n" << flush;
+	loadFeature(featureFileName, hashFeature);
+
 	int userId = hashPred.begin()->first;
-	PSO_Discreet(userId, userPred, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, iter_max, swarmSize, particleSize);
+	PSO_Discreet(userId, userPred, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, iter_max, swarmSize, particleSize);
 
 	return 0;
 }
 
-void PSO_Discreet(int userId, VectorOfUser &userPred, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize){
+void PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize){
 	int iter = 0;
 	GBest gbest;
 
-	Swarm swarm = create_particles(userPred[userId], swarmSize, particleSize);
+	Swarm swarm = create_particles(userPred[userId], swarmSize, particleSize, numPreds);
 
 	// calcule pBest and gBest
 	for(unsigned int i = 0; i < swarm.size(); i++){
-		calculate_fo(swarm[i], userId, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize);
+		calculate_fo(swarm[i], userId, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize);
 		for(Element e: swarm[i].element){
-			cout << e.id << " ";
+			cout << e.id << ":" << e.pos << " ";
 		}
 		cout << "\n";
 		for(Element e: swarm[i].pBest){
-			cout << e.id << " ";
+			cout << e.id << ":" << e.pos << " ";
 		}
 		cout << "\n";
 		cout << i << " : " << swarm[i].pBest_fo << " : " << swarm[i].relBest << " : " << swarm[i].divBest << "\n";
@@ -70,7 +76,11 @@ void PSO_Discreet(int userId, VectorOfUser &userPred, HashOfHashes &testData, Ha
 		}
 	}
 
-	while(iter <= iter_max){
+	int roulette1 = 0;
+	int roulette2 = 0;
+	int roulette3 = 0;
+	int rouletteError = 0;
+	while(iter < iter_max){
 		for(unsigned int i = 0; i < swarm.size(); i++){
 			//build particle by parents
 			Particle new_p;
@@ -78,7 +88,16 @@ void PSO_Discreet(int userId, VectorOfUser &userPred, HashOfHashes &testData, Ha
 				int itemId = -1;
 				int itemPos = -1;
 				while(itemId == -1 || findIdElement(itemId, new_p.element) ){
-					int particle_choice = roulette(0.2, 0.3, 0.5);
+					int particle_choice = roulette(0.6, 0.3, 0.3);
+					if(particle_choice == 1){
+						roulette1 += 1;
+					}else if(particle_choice == 2){
+						roulette2 += 1;
+					}else if(particle_choice == 3){
+						roulette3 += 1;
+					}else{
+						rouletteError += 1;
+					}
 					int pos = rand() % 10;
 					if(particle_choice == 1){
 						itemId = swarm[i].element[pos].id;
@@ -96,11 +115,11 @@ void PSO_Discreet(int userId, VectorOfUser &userPred, HashOfHashes &testData, Ha
 				new_p.element.emplace_back(e);
 
 			}
-		}
-		// calcule pBest and gBest
-		for(unsigned int i = 0; i < swarm.size(); i++){
-			calculate_fo(swarm[i], userId, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize);
+			swarm[i].element = new_p.element;
 
+			// calcule pBest and gBest
+			calculate_fo(swarm[i], userId, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize);
+			
 			// update gbest
 			if(gbest.fo < swarm[i].pBest_fo){
 				gbest.fo = swarm[i].pBest_fo;
@@ -112,7 +131,27 @@ void PSO_Discreet(int userId, VectorOfUser &userPred, HashOfHashes &testData, Ha
 		iter++;
 	}
 
+	cout << roulette1 << "\n";
+	cout << roulette2 << "\n";
+	cout << roulette3 << "\n";
+	cout << rouletteError << "\n";
+
+	cout << "\n--------------------------------------------------------------------\n";
+	// print Pbests
+	for(unsigned int i = 0; i < swarm.size(); i++){
+		for(Element e: swarm[i].element){
+			cout << e.id << ":" << e.pos << " ";
+		}
+		cout << "\n";
+		for(Element e: swarm[i].pBest){
+			cout << e.id << ":" << e.pos << " ";
+		}
+		cout << "\n";
+		cout << i << " : " << swarm[i].pBest_fo << " : " << swarm[i].relBest << " : " << swarm[i].divBest << "\n";
+	}
+
 	// print gbest
+	cout << "\n";
 	for(Element e: gbest.element){
 		cout << e.id << ":" << e.pos << " ";
 	}
@@ -124,11 +163,12 @@ void PSO_Discreet(int userId, VectorOfUser &userPred, HashOfHashes &testData, Ha
 
 }
 
-void calculate_fo(Particle& p, int userId, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize){
+void calculate_fo(Particle& p, int userId, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize){
 	// FO: (1- alfa)*REL + alfa*DIV
 	//REL: (n-pos)/n
 	float relevance = 0;
-	double diversify = 0;
+	//double diversify = 0;
+	float diversify = 0;
 	float fo = 0;
 	
 	// relevance
@@ -138,7 +178,8 @@ void calculate_fo(Particle& p, int userId, HashOfHashes &testData, HashOfHashes 
 	relevance /= p.element.size();
 
 	// diversify
-	diversify = getILD(testData, p.element, hashSimilarity, itemRatings, userId, numPreds);
+	//diversify = getILD(testData, p.element, hashSimilarity, itemRatings, userId, numPreds);
+	diversify = getDiv(p.element, hashFeature);
 
 	// fo
 	fo = ((1 - alfa)*relevance) + (alfa*diversify);
@@ -161,12 +202,25 @@ int roulette(float w, float c1, float c2){
 	for(int i=0; i<t3; i++)
 		vectorRoulette.push_back(3);
 
+	embaralhar(vectorRoulette, (int)vectorRoulette.size());
+
 	int pos = rand() % 10;
 
 	return vectorRoulette[pos];
 }
 
-Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize){
+void embaralhar(vector<int> &vet, int vetSize){
+	for (int i = 0; i < vetSize; i++)
+	{
+		int r = rand() % vetSize;
+
+		int temp = vet[i];
+		vet[i] = vet[r];
+		vet[r] = temp;
+	}
+}
+
+Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize, int numPreds){
 	Swarm s;
 	int bestCand = round(0.4 * swarmSize);
 	int randCand = swarmSize - bestCand; 
@@ -174,18 +228,24 @@ Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize)
 	// bestCand
 	int count = 0;
 	for(int i = 0; i < bestCand; i++){
-		Particle p;
-		int j = count;
-		for(;j < count + particleSize; j++){
-			Element e(vectorPred[j], j);
-			p.element.emplace_back(e);
+		if((count + particleSize) > numPreds){
+			Particle p;
+			int j = count;
+			for(;j < count + particleSize; j++){
+				Element e(vectorPred[j], j);
+				p.element.emplace_back(e);
+			}
+			count = j;
+			s.push_back(p);
+		}else{
+			randCand += (bestCand-(i+1));
+			break;
 		}
-		count = j;
-		s.push_back(p);
 	}
 	
 	// randomCand
 	for(int i = 0; i < randCand; i++){
+	//for(int i = 0; i < swarmSize; i++){
 		Particle p;
 		for(int j = 0; j < particleSize; j++){
 			int pos = rand() % 100;
@@ -222,6 +282,27 @@ bool findPosElement(int pos, vector<Element> elements){
 /****************************************************************************************
                              Diversify Functions
 *****************************************************************************************/
+
+float getDiv(vector<Element> &element, VectorOfUser &hashFeature){
+	vector<int> featureFinal = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	
+	for(Element e: element){
+		vector<int> featureCurrent = hashFeature[e.id];
+		for(unsigned int i=0; i<featureCurrent.size(); i++){
+			if((featureFinal[i] + featureCurrent[i]) >= 1 ){
+				featureFinal[i] = 1;
+			}else{
+				featureFinal[i] = 0;
+			}
+		}
+	}
+
+	int sum = 0;
+	for(unsigned int i=0; i<featureFinal.size(); i++){
+		sum += featureFinal[i];
+	}
+	return (float) sum / featureFinal.size();
+}
 
 double getILD(HashOfHashes &testData, vector<Element> &particle, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int userId, int numPreds) {
 
@@ -399,44 +480,43 @@ void loadPred(string predFile, HashOfHashes &hashPred, VectorOfUser &userPred, i
 	file.close();
 }
 
-void loadPred(string featureFile, HashOfHashes &VectorOfUser, VectorOfUser &userPred, int numPreds)
+void loadFeature(string featureFile, VectorOfUser &hashFeature)
 {
 	std::ifstream file;
 	std::string line;
-	std::string itemId;
-	std::string rating;
 	std::vector<std::string> vetor;
 	int userId;
+	vector<int> features;
 	int vectorSize;
 
-	file.open(predFile);
+	file.open(featureFile);
 
 	if (!file.is_open())
 	{
 		std::cout << "\nError opening file!" << endl;
-		std::cout << predFile << endl;
+		std::cout << featureFile << endl;
 		std::exit(-1);
 	}
 
+	getline(file, line);
 	while (!file.eof())
 	{
 		getline(file, line);
 
 		// separa a linha através do delimitador " " e salva o resultado em um vetor
 		vetor.clear();
+		features.clear();
 		string_tokenize(line, vetor, " ");
 		userId = atoi(vetor[0].c_str());
 		vectorSize = (int)vetor.size();
 
-		for (int i = 1; i < vectorSize && i <= numPreds; i++)
+		for (int i = 1; i < vectorSize; i++)
 		{
-			std::stringstream ssBuffer(vetor[i]);
-			getline(ssBuffer, itemId, ':');
-			getline(ssBuffer, rating, ':');
-
-			hashPred[userId][atoi(itemId.c_str())] = atof(rating.c_str());
-			userPred[userId].push_back(atoi(itemId.c_str()));
+			features.push_back(atoi(vetor[i].c_str()));
 		}
+
+		if(!features.empty())
+			hashFeature[userId] = features;
 	}
 
 	file.close();
