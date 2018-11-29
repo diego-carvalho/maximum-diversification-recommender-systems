@@ -22,7 +22,7 @@ using namespace std;
 typedef std::unordered_map<int, float> Hash;		// INT: ID do item	  - FLOAT: valor do item
 typedef std::unordered_map<int, Hash> HashOfHashes; // INT: ID do usuário - HASH: lista do usuário
 
-//pso 
+//pso
 typedef std::unordered_map<int, vector<int>> VectorOfUser; // INT: ID do usuário - Vector: lista com os id de itens
 
 //typedef vector<int> Particle;   // Particula que contem: (First: ID do Item, Second: Valor)
@@ -51,6 +51,7 @@ struct GBest {
 	GBest():fo(0), rel(0), div(0){}
 };
 typedef vector<Particle> Swarm; // Enxame de particulas
+typedef std::unordered_map<int, GBest> GBestOfUser; // INT: ID do usuário - Vector: lista com os id de itens
 
 /* estrutura que define os parametros para funcao da thread */
 /*struct pthread_param {
@@ -67,13 +68,13 @@ typedef vector<Particle> Swarm; // Enxame de particulas
 
 int main(int argc, char **argv);
 
-void PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize);
+GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize);
 
 void calculate_fo(Particle& p, int userId, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize);
 
 int roulette(float w, float c1, float c2);
 
-void embaralhar(vector<int> &vet, int vetSize);
+void shuffle(vector<int> &vet, int vetSize);
 
 Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize, int numPreds);
 

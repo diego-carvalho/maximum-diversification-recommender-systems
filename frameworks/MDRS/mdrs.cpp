@@ -7,16 +7,16 @@ int MAX_RATING;
 int main(int argc, char **argv)
 {
 	string predFileName = "../../Recommendations-Lists/rec_itemKNN_conv.txt";
-	//string predFileName = "../../Recommendations-Lists/rec_itemKNN_conv2.txt";
+	//string predFileName = "../../Recommendations-Lists/rec_userKNN_conv.txt";
 	//string predFileName = "../../Recommendations-Lists/rec_MostPopular_conv.txt";
 	//string predFileName = "../../Recommendations-Lists/rec_WRMF_conv.txt";
 	string trainFileName = "../../Datasets/ML-1M/ratings_train.txt";
 	string testFileName = "../../Datasets/ML-1M/ratings_test.txt";
 	string featureFileName = "../../Datasets/ML-1M/featuresItems.txt";
 	int numPreds = 100;
-	int swarmSize = 300;
+	int swarmSize = 20;
 	int particleSize = 10;
-	float alfa = 0.6;
+	float alfa = 0.5;
 	int iter_max = 100;
 
 	std::ifstream file;
@@ -29,6 +29,7 @@ int main(int argc, char **argv)
 	HashOfHashes hashPred;
 	VectorOfUser userPred;
 	VectorOfUser hashFeature;
+	GBestOfUser gbestUser;
 
 	std::cout << "loading predictions...\n"  << flush;
 	loadPred(predFileName, hashPred, userPred, numPreds);
@@ -43,12 +44,21 @@ int main(int argc, char **argv)
 	loadFeature(featureFileName, hashFeature);
 
 	int userId = hashPred.begin()->first;
-	PSO_Discreet(userId, userPred, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, iter_max, swarmSize, particleSize);
+	gbestUser[userId] = PSO_Discreet(userId, userPred, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, iter_max, swarmSize, particleSize);
+	// print gbest of userId
+	cout << "\n" << "Gbest of userId: " << userId << "\n";
+	for(Element e: gbestUser[userId].element){
+		cout << e.id << ":" << e.pos << " ";
+	}
+	cout << "\n";
+	cout << "FO: " << gbestUser[userId].fo << "\n";
+	cout << "REL: " << gbestUser[userId].rel << "\n";
+	cout << "DIV: " << gbestUser[userId].div << "\n";
 
 	return 0;
 }
 
-void PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize){
+GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize){
 	int iter = 0;
 	GBest gbest;
 
@@ -88,7 +98,7 @@ void PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature,
 				int itemId = -1;
 				int itemPos = -1;
 				while(itemId == -1 || findIdElement(itemId, new_p.element) ){
-					int particle_choice = roulette(0.6, 0.3, 0.3);
+					int particle_choice = roulette(0.3, 0.3, 0.6);
 					if(particle_choice == 1){
 						roulette1 += 1;
 					}else if(particle_choice == 2){
@@ -119,7 +129,7 @@ void PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature,
 
 			// calcule pBest and gBest
 			calculate_fo(swarm[i], userId, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize);
-			
+
 			// update gbest
 			if(gbest.fo < swarm[i].pBest_fo){
 				gbest.fo = swarm[i].pBest_fo;
@@ -150,27 +160,17 @@ void PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature,
 		cout << i << " : " << swarm[i].pBest_fo << " : " << swarm[i].relBest << " : " << swarm[i].divBest << "\n";
 	}
 
-	// print gbest
-	cout << "\n";
-	for(Element e: gbest.element){
-		cout << e.id << ":" << e.pos << " ";
-	}
-	cout << "\n";
-	cout << "FO: " << gbest.fo << "\n";
-	cout << "REL: " << gbest.rel << "\n";
-	cout << "DIV: " << gbest.div << "\n";
-
-
+	return gbest;
 }
 
 void calculate_fo(Particle& p, int userId, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize){
 	// FO: (1- alfa)*REL + alfa*DIV
 	//REL: (n-pos)/n
 	float relevance = 0;
-	//double diversify = 0;
-	float diversify = 0;
+	double diversify = 0;
+	//float diversify = 0;
 	float fo = 0;
-	
+
 	// relevance
 	for(Element e: p.element){
 		relevance += (float) (numPreds - e.pos)/numPreds;
@@ -178,8 +178,8 @@ void calculate_fo(Particle& p, int userId, VectorOfUser &hashFeature, HashOfHash
 	relevance /= p.element.size();
 
 	// diversify
-	//diversify = getILD(testData, p.element, hashSimilarity, itemRatings, userId, numPreds);
-	diversify = getDiv(p.element, hashFeature);
+	diversify = getILD(testData, p.element, hashSimilarity, itemRatings, userId, numPreds);
+	//diversify = getDiv(p.element, hashFeature);
 
 	// fo
 	fo = ((1 - alfa)*relevance) + (alfa*diversify);
@@ -202,14 +202,14 @@ int roulette(float w, float c1, float c2){
 	for(int i=0; i<t3; i++)
 		vectorRoulette.push_back(3);
 
-	embaralhar(vectorRoulette, (int)vectorRoulette.size());
+	shuffle(vectorRoulette, (int)vectorRoulette.size());
 
 	int pos = rand() % 10;
 
 	return vectorRoulette[pos];
 }
 
-void embaralhar(vector<int> &vet, int vetSize){
+void shuffle(vector<int> &vet, int vetSize){
 	for (int i = 0; i < vetSize; i++)
 	{
 		int r = rand() % vetSize;
@@ -223,12 +223,13 @@ void embaralhar(vector<int> &vet, int vetSize){
 Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize, int numPreds){
 	Swarm s;
 	int bestCand = round(0.4 * swarmSize);
-	int randCand = swarmSize - bestCand; 
-	
+	int randCand = swarmSize - bestCand;
+	//cout << bestCand << " - " << randCand << "\n";
+
 	// bestCand
 	int count = 0;
 	for(int i = 0; i < bestCand; i++){
-		if((count + particleSize) > numPreds){
+		if((count + particleSize) < numPreds){
 			Particle p;
 			int j = count;
 			for(;j < count + particleSize; j++){
@@ -242,7 +243,7 @@ Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize,
 			break;
 		}
 	}
-	
+
 	// randomCand
 	for(int i = 0; i < randCand; i++){
 	//for(int i = 0; i < swarmSize; i++){
@@ -258,7 +259,7 @@ Swarm create_particles(vector<int> &vectorPred, int swarmSize, int particleSize,
 		s.push_back(p);
 	}
 
-	return s;	
+	return s;
 }
 
 bool findIdElement(int id, vector<Element> elements){
@@ -285,7 +286,7 @@ bool findPosElement(int pos, vector<Element> elements){
 
 float getDiv(vector<Element> &element, VectorOfUser &hashFeature){
 	vector<int> featureFinal = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	
+
 	for(Element e: element){
 		vector<int> featureCurrent = hashFeature[e.id];
 		for(unsigned int i=0; i<featureCurrent.size(); i++){
@@ -336,7 +337,7 @@ void diversityILD(int user, HashOfHashes &testData, vector<Element> &particle, H
 
 			if( l < k){
 				pearson = (retrieveItemsSimilarity(itemL, itemK, hashSimilarity, itemRatings) + 1)/2;
-				distance_lk = 1 - pearson; 
+				distance_lk = 1 - pearson;
 				sum += distance_lk;
 			}
 			l++;
@@ -344,7 +345,7 @@ void diversityILD(int user, HashOfHashes &testData, vector<Element> &particle, H
 		k++;
 	}
 
-	ILD = 2.0/((double) (numRecommendations * (numRecommendations - 1)))  * sum; 
+	ILD = 2.0/((double) (numRecommendations * (numRecommendations - 1)))  * sum;
 
 }
 
@@ -352,27 +353,27 @@ float retrieveItemsSimilarity(int item1, int item2, HashOfHashes &hashSimilarity
 	int firstItem = item1;
 	int secondItem = item2;
 	float similarity;
-	
+
 	HashOfHashes::iterator itr1;
 	Hash::iterator itr2;
-	
+
 	if(item1 > item2){
 		firstItem = item2;
 		secondItem = item1;
 	}
-	
+
 	itr1= hashSimilarity.find(firstItem);
 	if( itr1 != hashSimilarity.end() ){
-		
+
 		itr2 = hashSimilarity[firstItem].find(secondItem);
 		if( itr2 != hashSimilarity[firstItem].end() )
 			return hashSimilarity[firstItem][secondItem];
-		
+
 	}
-	
+
 	//calcula nova similaridade
 	similarity = calculatePearsonSimilarity(firstItem, secondItem, itemRatings);
-	
+
 	//atualiza similaridade
 	hashSimilarity[firstItem][secondItem] = similarity;
 
@@ -386,50 +387,50 @@ float calculatePearsonSimilarity(int firstItem, int secondItem, HashOfHashes &it
 	float squaredDifferencesX;
 	float squaredDifferencesY;
 	float sumOfProduct = 0.0;
-	
-	
+
+
 	HashOfHashes::iterator itr1;
 	HashOfHashes::iterator itr2;
 
 	Hash::iterator itr3;
 	Hash::iterator itr4;
-	
+
 	//verify whether both item exist in the training set
 	itr1 = itemRatings.find(firstItem);
 	itr2 = itemRatings.find(secondItem);
-	
+
 	if( itr1 == itemRatings.end() || itr2 == itemRatings.end() )
 		return pearson;
-	
+
 	meanX = 0.0;
 	for( itr3=itemRatings[firstItem].begin(); itr3!=itemRatings[firstItem].end(); itr3++ )
 		meanX += itr3->second;
-	
+
 	meanY = 0.0;
 	for( itr4=itemRatings[secondItem].begin(); itr4!=itemRatings[secondItem].end(); itr4++ )
 		meanY += itr4->second;
-	
+
 	sumOfProduct = 0.0;
 	squaredDifferencesX = 0.0;
 	for( itr3=itemRatings[firstItem].begin(); itr3!=itemRatings[firstItem].end(); itr3++ ){
 		squaredDifferencesX += (itr3->second - meanX)*(itr3->second - meanX);
-		
+
 		itr4 = itemRatings[secondItem].find(itr3->first);
 		if( itr4 != itemRatings[secondItem].end() ){
 			sumOfProduct += (itr3->second - meanX)*(itr4->second - meanY);
-		}		
+		}
 	}
-	
-	
+
+
 	squaredDifferencesY = 0.0;
 	for( itr4=itemRatings[secondItem].begin(); itr4!=itemRatings[secondItem].end(); itr4++ ){
 		squaredDifferencesY += (itr4->second - meanY)*(itr4->second - meanY);
 	}
-	
+
 	if( (squaredDifferencesX > 0.0) && (squaredDifferencesY > 0) ){
 		pearson = sumOfProduct/(sqrt(squaredDifferencesX)*sqrt(squaredDifferencesY));
 	}
-	
+
 	return pearson;
 }
 
@@ -548,10 +549,10 @@ void loadTrainData(string trainFile, HashOfHashes &itemRatings, HashOfHashes &tr
 		userId = atoi(vetor[0].c_str());
 		itemId = atoi(vetor[1].c_str());
 		rating = atof(vetor[2].c_str());
-		
+
 		if(rating > MAX_RATING)
 			MAX_RATING = rating;
-		
+
 		itemRatings[itemId][userId] = rating;
 		trainData[userId][itemId] = rating;
 
@@ -586,7 +587,7 @@ void loadTestData(string testFile, HashOfHashes &testData) {
 			userId = atoi(vetor[0].c_str());
 			itemId = atoi(vetor[1].c_str());
 			rating = atof(vetor[2].c_str());
-			
+
 			testData[userId][itemId] = rating;
 		}
 	}
