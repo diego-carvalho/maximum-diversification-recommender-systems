@@ -9,6 +9,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <set>
 #include <map>
 #include <algorithm>
 #include <math.h>
@@ -52,6 +53,18 @@ struct GBest {
 };
 typedef vector<Particle> Swarm; // Enxame de particulas
 typedef std::unordered_map<int, GBest> GBestOfUser; // INT: ID do usuário - Vector: lista com os id de itens
+
+struct PrintData
+{
+	int userID;
+	float acc;
+	float accRel;
+	float div;
+
+	PrintData(): userID(0), acc(0), accRel(0), div(0) { }
+	PrintData(int id, float accuracy, float accuracyRel, float diversity): 
+				userID(id), acc(accuracy), accRel(accuracyRel), div(diversity) { }
+};
 
 /* estrutura que define os parametros para funcao da thread */
 /*struct pthread_param {
@@ -102,8 +115,17 @@ double getILD(HashOfHashes &testData, vector<Element> &particle, HashOfHashes &h
 
 float calculatePearsonSimilarity(int firstItem, int secondItem, HashOfHashes &itemRatings);
 
-/*
+// === Acc and AccRel ===
 
+PrintData findAccuracy(int userId, HashOfHashes &trainData, HashOfHashes &testData, GBest &userB);
+
+void writeToFile(vector<PrintData>& vecPrint, const char *filePath);
+
+void writeToFile(HashOfHashes& hashPred, GBestOfUser& allGBests, const char *filePath);
+
+
+// ============ Funções removidas ============
+/*
 void noveltyDiscoveryEPC(int user, unsigned int numUsers, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &itemRatings, double C, double &EPC_r, double &EPC);
 
 inline double conditionalRankDiscount(int rank1, int rank2);
@@ -118,6 +140,7 @@ void noveltyEPD(int user, HashOfHashes &trainData, HashOfHashes &testData, HashO
 
 int getArgs(int argc, char **argv, char **baseFile, char **predFile, char **testFile, char **outFile, int *numThreads, int *numPreds);
 
-void printUsage();*/
+void printUsage();
+*/
 
 #endif
