@@ -20,3 +20,6 @@ clean:
 
 backup:
 	tar -cvzf backups/`date +%Y-%m-%d-%H.%M`.tar.gz *.h *.cpp Makefile 
+
+run:
+	./mdrs

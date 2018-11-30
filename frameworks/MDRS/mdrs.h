@@ -119,9 +119,9 @@ float calculatePearsonSimilarity(int firstItem, int secondItem, HashOfHashes &it
 
 PrintData findAccuracy(int userId, HashOfHashes &trainData, HashOfHashes &testData, GBest &userB);
 
-void writeToFile(vector<PrintData>& vecPrint, const char *filePath);
+void writeToFile(vector<PrintData>& vecPrint, string filePath);
 
-void writeToFile(HashOfHashes& hashPred, GBestOfUser& allGBests, const char *filePath);
+void writeToFile(HashOfHashes& hashPred, GBestOfUser& allGBests, string filePath);
 
 
 // ============ Funções removidas ============

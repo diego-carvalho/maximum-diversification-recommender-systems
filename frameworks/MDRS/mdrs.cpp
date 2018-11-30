@@ -6,15 +6,15 @@ int MAX_RATING;
 
 int main(int argc, char **argv)
 {
-	string predFileName = "../../Recommendations-Lists/rec_itemKNN_conv.txt";
-	//string predFileName = "../../Recommendations-Lists/rec_userKNN_conv.txt";
+	//string predFileName = "../../Recommendations-Lists/rec_itemKNN_conv.txt";
+	string predFileName = "../../Recommendations-Lists/rec_userKNN_conv.txt";
 	//string predFileName = "../../Recommendations-Lists/rec_MostPopular_conv.txt";
 	//string predFileName = "../../Recommendations-Lists/rec_WRMF_conv.txt";
 	string trainFileName = "../../Datasets/ML-1M/ratings_train.txt";
 	string testFileName = "../../Datasets/ML-1M/ratings_test.txt";
 	string featureFileName = "../../Datasets/ML-1M/featuresItems.txt";
 	int numPreds = 100;
-	int swarmSize = 20;
+	int swarmSize = 30;
 	int particleSize = 10;
 	float alfa = 0.5;
 	int iter_max = 100;
@@ -57,18 +57,26 @@ int main(int argc, char **argv)
 	// 	vecPrint.push_back(printData);
 	// }
 
-	int userId = hashPred.begin()->first;
-	gbestUser[userId] = PSO_Discreet(userId, userPred, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, iter_max, swarmSize, particleSize);
-	PrintData printData = findAccuracy(userId, trainData, testData, gbestUser[userId]);
-	vecPrint.push_back(printData);
+	// Gera N arquivos de avaliação
+	for(int i = 1; i <= 10; i++){
 
-	for (auto &&i : vecPrint)
-	{
-		cout << i.userID << " " << i.acc << " " << i.accRel << " " << i.div << "\n";
+		cout << "Teste " << i << "\n";
+
+		//int userId = hashPred.begin()->first;
+		for (int userId = 1; userId <= 500; userId++){
+			gbestUser[userId] = PSO_Discreet(userId, userPred, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, iter_max, swarmSize, particleSize);
+			PrintData printData = findAccuracy(userId, trainData, testData, gbestUser[userId]);
+			vecPrint.push_back(printData);
+		}
+
+		//for (auto &&i : vecPrint)
+		//{
+		//	cout << i.userID << " " << i.acc << " " << i.accRel << " " << i.div << "\n";
+		//}
+
+		writeToFile(vecPrint, "../../Evaluations/MDRS_Output/UserKNN/Teste"+std::to_string(i)+"/eval.txt");
+		writeToFile(hashPred, gbestUser, "../../Evaluations/MDRS_Output/UserKNN/Teste"+std::to_string(i)+"/rec.txt");
 	}
-
-	writeToFile(vecPrint, "output/accuracy.txt");
-	writeToFile(hashPred, gbestUser, "output/gbests.txt");
 
 	// print gbest of userId
 	// cout << "\n" << "Gbest of userId: " << userId << "\n";
@@ -97,7 +105,7 @@ PrintData findAccuracy(int userId, HashOfHashes &trainData, HashOfHashes &testDa
 		userMean += i.second;
 
 	userMean /= trainUser.size();
-	cout << "Média: " << userMean << "\n";
+	//cout << "Média: " << userMean << "\n";
 
 	// Acurácia é no teste
 	for (auto &&i : userB.element)
@@ -119,7 +127,7 @@ PrintData findAccuracy(int userId, HashOfHashes &trainData, HashOfHashes &testDa
 	return PrintData(userId, acc, accRel, userB.div);
 }
 
-void writeToFile(vector<PrintData>& vecPrint, const char *filePath)
+void writeToFile(vector<PrintData>& vecPrint, string filePath)
 {
 	ofstream myFile(filePath);
 	if (myFile.is_open())
@@ -132,7 +140,7 @@ void writeToFile(vector<PrintData>& vecPrint, const char *filePath)
 	}
 }
 
-void writeToFile(HashOfHashes& hashPred, GBestOfUser& allGBests, const char *filePath)
+void writeToFile(HashOfHashes& hashPred, GBestOfUser& allGBests, string filePath)
 {
 	ofstream myFile(filePath);
 	if (myFile.is_open())
