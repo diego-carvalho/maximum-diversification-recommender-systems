@@ -6,8 +6,8 @@ int MAX_RATING;
 
 int main(int argc, char **argv)
 {
-	//string predFileName = "../../Recommendations-Lists/rec_itemKNN_conv.txt";
-	string predFileName = "../../Recommendations-Lists/rec_userKNN_conv.txt";
+	string predFileName = "../../Recommendations-Lists/rec_itemKNN_conv.txt";
+	//string predFileName = "../../Recommendations-Lists/rec_userKNN_conv.txt";
 	//string predFileName = "../../Recommendations-Lists/rec_MostPopular_conv.txt";
 	//string predFileName = "../../Recommendations-Lists/rec_WRMF_conv.txt";
 	string trainFileName = "../../Datasets/ML-1M/ratings_train.txt";
@@ -46,8 +46,6 @@ int main(int argc, char **argv)
 	std::cout << "loading feature data...\n"
 			  << flush;
 	loadFeature(featureFileName, hashFeature);
-
-	vector<PrintData> vecPrint;
 	// for (auto&& hp : hashPred)
 	// {
 	// 	int userId = hp.first;
@@ -59,6 +57,7 @@ int main(int argc, char **argv)
 
 	// Gera N arquivos de avaliação
 	for(int i = 1; i <= 10; i++){
+		vector<PrintData> vecPrint;
 
 		cout << "Teste " << i << "\n";
 
@@ -74,8 +73,8 @@ int main(int argc, char **argv)
 		//	cout << i.userID << " " << i.acc << " " << i.accRel << " " << i.div << "\n";
 		//}
 
-		writeToFile(vecPrint, "../../Evaluations/MDRS_Output/UserKNN/Teste"+std::to_string(i)+"/eval.txt");
-		writeToFile(hashPred, gbestUser, "../../Evaluations/MDRS_Output/UserKNN/Teste"+std::to_string(i)+"/rec.txt");
+		writeToFile(vecPrint, "../../Evaluations/MDRS_Output/alfa05/WRMF/Teste"+std::to_string(i)+"/eval.txt");
+		writeToFile(hashPred, gbestUser, "../../Evaluations/MDRS_Output/alfa05/WRMF/Teste"+std::to_string(i)+"/rec.txt");
 	}
 
 	// print gbest of userId
@@ -145,10 +144,11 @@ void writeToFile(HashOfHashes& hashPred, GBestOfUser& allGBests, string filePath
 	ofstream myFile(filePath);
 	if (myFile.is_open())
 	{
-		for (auto&& user : hashPred)
+		//for (auto&& user : hashPred)
+		for (int userId = 1; userId<= 500; userId++)
 		{
-			myFile << user.first << "\t";
-			for(auto&& element : allGBests[user.first].element)
+			myFile << userId << "\t";
+			for(auto&& element : allGBests[userId].element)
 			{
 				myFile << element.id << ":" << element.pos << "\t";
 			}
@@ -158,17 +158,102 @@ void writeToFile(HashOfHashes& hashPred, GBestOfUser& allGBests, string filePath
 	}
 }
 
+GBest path_Relink(GBest gbest, int gbestPos, GBest dbest, Swarm &swarm, VectorOfUser &hashFeature, int numPreds, float alfa){
+	// fix function
+	return gbest;
+	float relevance = 0;
+	float diversify = 0;
+	// transform gbest in dbest
+	float new_fo = 0;
+	GBest new_gbest = gbest;
+	float gbest_fo = calculate_fo_path(gbest, hashFeature, numPreds, alfa, relevance, diversify);
+
+	//cout <<"HERE 1\n";
+	for(unsigned i = 0; i < dbest.element.size(); i++){
+		//cout <<"I: " << i << "\n";
+		//int amount_options = dbest.element.size() - i;
+		Element bestCurrent_element(-1, -1);
+		float bestCurrent_fo = 0;
+		float bestCurrent_rel = 0;
+		float bestCurrent_div = 0;
+		int bestCurrent_pos = -1;
+
+		for(unsigned j = 0; j < dbest.element.size(); j++){
+			//cout <<"J: " << j << "\n";
+			if(dbest.element[j].pos != -1){
+				new_fo = 0;
+				Element e = new_gbest.element[j];
+				new_gbest.element[j] = dbest.element[j];
+				relevance = 0;
+				diversify = 0;
+				new_fo = calculate_fo_path(new_gbest, hashFeature, numPreds, alfa, relevance, diversify);
+				if(new_fo > bestCurrent_fo){
+					bestCurrent_element = dbest.element[j];
+					bestCurrent_pos = j;
+					bestCurrent_fo = new_fo;
+					bestCurrent_rel = relevance;
+					bestCurrent_div = diversify;
+	
+					// update global best
+					if (gbest_fo < bestCurrent_fo){
+						gbest.fo = bestCurrent_fo;
+						gbest.rel = bestCurrent_rel;
+						gbest.div = bestCurrent_div;
+						gbest.element[bestCurrent_pos] = bestCurrent_element;
+						
+						//update particle
+						swarm[gbestPos].pBest_fo = gbest.fo;
+						swarm[gbestPos].relBest = gbest.rel;
+						swarm[gbestPos].divBest = gbest.div;
+						swarm[gbestPos].pBest = gbest.element;
+					}
+				}
+				new_gbest.element[j] = e;
+			}
+		}
+		new_gbest.element[bestCurrent_pos] = bestCurrent_element;
+		dbest.element[bestCurrent_pos].pos = -1;
+		//dbest.element.erase(dbest.element.begin() + bestCurrent_pos);
+	}
+	return gbest;
+
+}
+
+float calculate_fo_path(GBest &p, VectorOfUser &hashFeature, int numPreds, float alfa, float &relevance, float &diversify){
+	// calcule Fo
+	//float relevance = 0;
+	//float diversify = 0;
+	float fo = 0;
+
+	// relevance
+	for (Element e : p.element)
+	{
+		relevance += (float)(numPreds - e.pos) / numPreds;
+	}
+	relevance /= p.element.size();
+
+	// diversify
+	// diversify = getILD(testData, p.element, hashSimilarity, itemRatings, userId, numPreds);
+	diversify = getDiv(p.element, hashFeature);
+
+	// fo
+	fo = ((1 - alfa) * relevance) + (alfa * diversify);
+
+	return fo;
+}
+
 GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize)
 {
 	int iter = 0;
 	GBest gbest;
+	GBest dBest;
 
 	Swarm swarm = create_particles(userPred[userId], swarmSize, particleSize, numPreds);
 
 	// calcule pBest and gBest
 	for (unsigned int i = 0; i < swarm.size(); i++)
 	{
-		calculate_fo(swarm[i], userId, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize);
+		calculate_fo(swarm[i], userId, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize, dBest);
 		// for(Element e: swarm[i].element){
 		// 	cout << e.id << ":" << e.pos << " ";
 		// }
@@ -188,14 +273,10 @@ GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature
 			gbest.element = swarm[i].pBest;
 		}
 	}
-
-	int roulette1 = 0;
-	int roulette2 = 0;
-	int roulette3 = 0;
-	int rouletteError = 0;
 	while (iter < iter_max)
 	{
-		GBest dBest;
+		new (&dBest) GBest();
+		int gbestPos = -1;
 		for (unsigned int i = 0; i < swarm.size(); i++)
 		{
 			//build particle by parents
@@ -207,22 +288,6 @@ GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature
 				while (itemId == -1 || findIdElement(itemId, new_p.element))
 				{
 					int particle_choice = roulette(0.3, 0.3, 0.6);
-					if (particle_choice == 1)
-					{
-						roulette1 += 1;
-					}
-					else if (particle_choice == 2)
-					{
-						roulette2 += 1;
-					}
-					else if (particle_choice == 3)
-					{
-						roulette3 += 1;
-					}
-					else
-					{
-						rouletteError += 1;
-					}
 					int pos = rand() % 10;
 					if (particle_choice == 1)
 					{
@@ -247,7 +312,7 @@ GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature
 			swarm[i].element = new_p.element;
 
 			// calcule pBest and gBest
-			calculate_fo(swarm[i], userId, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize);
+			calculate_fo(swarm[i], userId, hashFeature, testData, hashPred, hashSimilarity, itemRatings, numPreds, alfa, swarmSize, dBest);
 
 			// update gbest
 			if (gbest.fo < swarm[i].pBest_fo)
@@ -256,8 +321,13 @@ GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature
 				gbest.rel = swarm[i].relBest;
 				gbest.div = swarm[i].divBest;
 				gbest.element = swarm[i].pBest;
+				gbestPos = i;
 			}
 		}
+
+		// realize path relink
+		gbest = path_Relink(gbest, gbestPos, dBest, swarm, hashFeature, numPreds, alfa);
+
 		iter++;
 	}
 
@@ -283,7 +353,7 @@ GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature
 	return gbest;
 }
 
-void calculate_fo(Particle &p, int userId, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize)
+void calculate_fo(Particle &p, int userId, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize, GBest &dBest)
 {
 	// FO: (1- alfa)*REL + alfa*DIV
 	//REL: (n-pos)/n
@@ -313,14 +383,13 @@ void calculate_fo(Particle &p, int userId, VectorOfUser &hashFeature, HashOfHash
 		p.pBest = p.element;
 	}
 
-	// ======== VER AQUI DEPOIS =========
 	// update div best
-	// if (diversify > dBest.div){
-	// 	dBest.div = diversify;
-	// 	dBest.fo = fo;
-	// 	dBest.relevance = relevance;
-	// 	dBest.element = p.element;
-	// }
+	if (diversify > dBest.div){
+		dBest.div = diversify;
+		dBest.fo = fo;
+		dBest.rel = relevance;
+		dBest.element = p.element;
+	}
 }
 
 int roulette(float w, float c1, float c2)

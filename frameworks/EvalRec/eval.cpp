@@ -6,10 +6,10 @@ int MAX_RATING;
 
 int main(int argc, char **argv)
 {
-	//string predFileName = "../../Recommendations-Lists/rec_itemKNN_5_conv.txt";
-	//string predFileName = "../../Recommendations-Lists/rec_userKNN_5_conv.txt";
-	//string predFileName = "../../Recommendations-Lists/rec_MostPopular_5_conv.txt";
-	string predFileName = "../../Recommendations-Lists/rec_WRMF_5_conv.txt";
+	//string predFileName = "../../Recommendations-Lists/rec_itemKNN_10_conv.txt";
+	//string predFileName = "../../Recommendations-Lists/rec_userKNN_10_conv.txt";
+	//string predFileName = "../../Recommendations-Lists/rec_MostPopular_10_conv.txt";
+	string predFileName = "../../Recommendations-Lists/rec_WRMF_10_conv.txt";
 	string trainFileName = "../../Datasets/ML-1M/ratings_train.txt";
 	string testFileName = "../../Datasets/ML-1M/ratings_test.txt";
 	string featureFileName = "../../Datasets/ML-1M/featuresItems.txt";

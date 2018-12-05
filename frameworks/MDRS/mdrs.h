@@ -49,7 +49,13 @@ struct GBest {
 	float fo;
 	float rel;
 	float div;
-	GBest():fo(0), rel(0), div(0){}
+	//GBest():fo(0), rel(0), div(0), element.clear(){}
+	GBest(){
+		this->fo = 0;
+		this->rel = 0;
+		this->div = 0;
+		this->element.clear();
+	}
 };
 typedef vector<Particle> Swarm; // Enxame de particulas
 typedef std::unordered_map<int, GBest> GBestOfUser; // INT: ID do usuário - Vector: lista com os id de itens
@@ -83,7 +89,11 @@ int main(int argc, char **argv);
 
 GBest PSO_Discreet(int userId, VectorOfUser &userPred, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int iter_max, int swarmSize, int particleSize);
 
-void calculate_fo(Particle& p, int userId, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize);
+GBest path_Relink(GBest gbest, int gbestPos, GBest dbest, Swarm &swarm, VectorOfUser &hashFeature, int numPreds, float alfa);
+
+void calculate_fo(Particle& p, int userId, VectorOfUser &hashFeature, HashOfHashes &testData, HashOfHashes &hashPred, HashOfHashes &hashSimilarity, HashOfHashes &itemRatings, int numPreds, float alfa, int swarmSize, GBest &dBest);
+
+float calculate_fo_path(GBest &p, VectorOfUser &hashFeature, int numPreds, float alfa, float &relevance, float &diversify);
 
 int roulette(float w, float c1, float c2);
 
